@@ -19,3 +19,4 @@ El proyecto clasifica y docu  menta los diferentes estados de los chanchitos:
 1. Crear un Issue describiendo el cambio.
 2. Crear una rama siguiendo la convención (`feature/`, `fix/`, `docs/`).
 3. Enviar un Pull Request vinculado al Issue (`Closes #ID`).
+"# prueba de branch protection" 
