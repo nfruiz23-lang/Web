@@ -7,3 +7,7 @@ def test_suma_2_numbers():
 
 def test_resta_2_numbers():
     assert Calculator().resta(5, 3) == 2
+
+
+def test_multiplicacion_2_numbers():
+    assert Calculator().multiplicacion(3, 4) == 12
