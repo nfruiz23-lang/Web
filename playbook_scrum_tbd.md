@@ -58,18 +58,10 @@ Ninguna historia ingresa al **Sprint Backlog** si no satisface el 100% de estos 
 * **Historia Original Problemática (Issue #4):** *"feat: multiplicación, división e historial + encender toggle al 100%"* (Estimación > 4 días, batch masivo, alto riesgo de regresión).
 
 ### Re-sliceado Vertical Aplicado en el Repositorio Real:
-```mermaid
-graph TD
-    H4["Issue #4 (Antipatrón Cerrado)"] --> S1["Issue #11: feat(core): división con manejo de errores y flag inactivo (Día 1)"]
-    H4 --> S2["Issue #12: feat(ui): controles frontend multiplicación y división al 10% (Día 2)"]
-    H4 --> S3["Issue #13: feat(history): registro y renderizado de historial en memoria (Día 3)"]
-    H4 --> S4["Issue #14: release: rollout 100% y retiro de flags obsoletos (Día 4-5)"]
-```
-
-1. **Issue #11 (Día 1 - Dark Launch):** Implementación de `division()` en `Calculator` con captura de `ZeroDivisionError`. Flag `ENABLE_DIVISION` al 0%. Merge a `main` verde.
-2. **Issue #12 (Día 2 - Canario):** Botones en interfaz web condicionados por ConfigCat. Rollout interno al 10%.
-3. **Issue #13 (Día 3 - Camino Feliz):** Estructura de historial en memoria y renderizado condicionado por `ENABLE_CALC_HISTORY`.
-4. **Issue #14 (Día 4-5 - Sunsetting):** Rollout al 100% en ConfigCat y PR de remoción de deuda técnica de flags temporales.
+* **Issue #11 (Día 1 - Dark Launch):** Implementación de `division()` en `Calculator` con captura de `ZeroDivisionError`. Flag `ENABLE_DIVISION` al 0%. Merge a `main` verde.
+* **Issue #12 (Día 2 - Canario):** Botones en interfaz web condicionados por ConfigCat. Rollout interno al 10%.
+* **Issue #13 (Día 3 - Camino Feliz):** Estructura de historial en memoria y renderizado condicionado por `ENABLE_CALC_HISTORY`.
+* **Issue #14 (Día 4-5 - Sunsetting):** Rollout al 100% en ConfigCat y PR de remoción de deuda técnica de flags temporales.
 
 ---
 
