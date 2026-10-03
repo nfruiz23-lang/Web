@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="{{ 'dark' if dark_mode else 'light' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculator API Dashboard - Chanchito Feliz. Calculadora con Feature Toggles y Dark Mode.">
+    <title>🐷 Calculator Dashboard - Chanchito Feliz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* =============================================
+           EJEMPLO 3 — DARK MODE (Ticket 1)
+           Variables CSS / tema oscuro y lógica de cambio
+           de clase en el HTML raíz, detrás del flag
+           dark_mode_enabled (apagado por defecto).
+           ============================================= */
+
+        /* --- Tema Claro (por defecto) --- */
+        :root,
+        [data-theme="light"] {
+            --bg-primary: #f0f2f5;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f8f9fa;
+            --bg-input: #f5f6f8;
+            --bg-result: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text-primary: #1a1a2e;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --text-on-gradient: #ffffff;
+            --border: #e5e7eb;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.12);
+            --accent: #667eea;
+            --accent-hover: #5a6fd6;
+            --danger: #ef4444;
+            --success: #10b981;
+            --toggle-bg: #e5e7eb;
+            --toggle-knob: #ffffff;
+            --badge-bg: rgba(102, 126, 234, 0.1);
+            --badge-text: #667eea;
+            --disabled-bg: #f3f4f6;
+            --disabled-text: #9ca3af;
+        }
+
+        /* --- Tema Oscuro (activado por ConfigCat) --- */
+        [data-theme="dark"] {
+            --bg-primary: #0f0f1a;
+            --bg-card: #1a1a2e;
+            --bg-card-hover: #22223a;
+            --bg-input: #16162b;
+            --bg-result: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --text-on-gradient: #ffffff;
+            --border: #2d2d4a;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+            --shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --accent: #818cf8;
+            --accent-hover: #6d78e0;
+            --danger: #f87171;
+            --success: #34d399;
+            --toggle-bg: #374151;
+            --toggle-knob: #818cf8;
+            --badge-bg: rgba(129, 140, 248, 0.15);
+            --badge-text: #818cf8;
+            --disabled-bg: #1f1f35;
+            --disabled-text: #4b5563;
+        }
+
+        /* --- Reset & Base --- */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.4s ease, color 0.4s ease;
+            line-height: 1.6;
+        }
+
+        /* --- Header --- */
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: background 0.4s ease, border-color 0.4s ease;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo {
+            font-size: 1.75rem;
+        }
+
+        .version-badge {
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* --- EJEMPLO 3 — DARK MODE (Ticket 2)
+               Botón toggle visible solo cuando el flag
+               dark_mode_enabled está ON en ConfigCat --- */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .theme-toggle.hidden {
+            display: none;
+        }
+
+        .theme-toggle-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .toggle-switch {
+            width: 44px;
+            height: 24px;
+            background: var(--toggle-bg);
+            border-radius: 999px;
+            position: relative;
+            transition: background 0.3s ease;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
+            background: var(--toggle-knob);
+            border-radius: 50%;
+            transition: transform 0.3s ease, background 0.3s ease;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch.active {
+            background: var(--accent);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        .theme-icon {
+            font-size: 1.1rem;
+            transition: opacity 0.3s ease;
+        }
+
+        /* --- Status Bar --- */
+        .status-bar {
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.75rem 2rem;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            transition: background 0.4s ease;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-pill.on {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-pill.off {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-pill.on .status-dot {
+            background: var(--success);
+        }
+
+        .status-pill.off .status-dot {
+            background: var(--danger);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* --- Main Content --- */
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        /* --- Calculator Card --- */
+        .calc-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: all 0.4s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .calc-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .calc-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+            align-items: end;
+        }
+
+        .input-group {
+            flex: 1;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.65rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        /* --- Buttons --- */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn {
+            padding: 0.7rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        .btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.active-op {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .btn.disabled {
+            background: var(--disabled-bg);
+            color: var(--disabled-text);
+            cursor: not-allowed;
+            border-style: dashed;
+        }
+
+        .btn.disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* --- Result --- */
+        .result-box {
+            background: var(--bg-result);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            color: var(--text-on-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 60px;
+            transition: all 0.4s ease;
+        }
+
+        .result-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            opacity: 0.85;
+        }
+
+        .result-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* --- Feature Flags Info --- */
+        .flags-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow);
+            transition: all 0.4s ease;
+        }
+
+        .flags-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .flag-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.65rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .flag-row:last-child {
+            border-bottom: none;
+        }
+
+        .flag-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            font-family: 'Courier New', monospace;
+            color: var(--accent);
+        }
+
+        .flag-status {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+        }
+
+        .flag-status.on {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--success);
+        }
+
+        .flag-status.off {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--danger);
+        }
+
+        /* --- Footer --- */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 600px) {
+            .header { padding: 0.75rem 1rem; }
+            .status-bar { padding: 0.5rem 1rem; }
+            .container { padding: 0 1rem; }
+            .input-row { flex-direction: column; }
+            .btn-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        /* --- Fade-in animation --- */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .calc-card, .flags-card {
+            animation: fadeInUp 0.5s ease both;
+        }
+
+        .flags-card {
+            animation-delay: 0.15s;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <span class="logo">🐷</span>
+            <h1>Calculator Dashboard</h1>
+            <span class="version-badge">v1.0.0</span>
+        </div>
+        <div class="header-right">
+            <!-- EJEMPLO 3 — Ticket 2: Botón toggle visible solo si dark_mode_enabled = ON -->
+            <div id="themeToggle" class="theme-toggle {{ '' if dark_mode else 'hidden' }}">
+                <span class="theme-toggle-label">Tema</span>
+                <span class="theme-icon">☀️</span>
+                <button id="toggleSwitch" class="toggle-switch {{ 'active' if dark_mode else '' }}" aria-label="Cambiar tema"></button>
+                <span class="theme-icon">🌙</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Status Bar — Feature Flags -->
+    <div class="status-bar">
+        <div class="status-pill {{ 'on' if division_enabled else 'off' }}">
+            <span class="status-dot"></span>
+            division_enabled: {{ 'ON' if division_enabled else 'OFF' }}
+        </div>
+        <div class="status-pill {{ 'on' if dark_mode else 'off' }}">
+            <span class="status-dot"></span>
+            dark_mode_enabled: {{ 'ON' if dark_mode else 'OFF' }}
+        </div>
+        <div class="status-pill on">
+            <span class="status-dot"></span>
+            Render: Deployed
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container">
+
+        <!-- Calculator -->
+        <div class="calc-card">
+            <div class="calc-title">🧮 Calculadora</div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label for="inputA">Número A</label>
+                    <input type="number" id="inputA" value="10" placeholder="0">
+                </div>
+                <div class="input-group">
+                    <label for="inputB">Número B</label>
+                    <input type="number" id="inputB" value="5" placeholder="0">
+                </div>
+            </div>
+
+            <div class="btn-grid">
+                <button class="btn" id="btnSuma" onclick="calcular('suma')">➕ Suma</button>
+                <button class="btn" id="btnResta" onclick="calcular('resta')">➖ Resta</button>
+                <button class="btn" id="btnMultiplicacion" onclick="calcular('multiplicacion')">✖️ Multiplicación</button>
+                {% if division_enabled %}
+                <button class="btn" id="btnDivision" onclick="calcular('division')">➗ División</button>
+                {% else %}
+                <button class="btn disabled" id="btnDivision" title="Feature flag 'division_enabled' está OFF en ConfigCat">🔒 División (OFF)</button>
+                {% endif %}
+            </div>
+
+            <div class="result-box">
+                <span class="result-label" id="resultLabel">Selecciona una operación</span>
+                <span class="result-value" id="resultValue">—</span>
+            </div>
+        </div>
+
+        <!-- Feature Flags Panel -->
+        <div class="flags-card">
+            <div class="flags-title">🚩 Feature Flags (ConfigCat)</div>
+            <div class="flag-row">
+                <span class="flag-name">division_enabled</span>
+                <span class="flag-status {{ 'on' if division_enabled else 'off' }}">
+                    {{ '✅ ON' if division_enabled else '❌ OFF' }}
+                </span>
+            </div>
+            <div class="flag-row">
+                <span class="flag-name">dark_mode_enabled</span>
+                <span class="flag-status {{ 'on' if dark_mode else 'off' }}">
+                    {{ '✅ ON' if dark_mode else '❌ OFF' }}
+                </span>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="footer">
+        Chanchito Feliz 🐷 &bull; CI/CD con GitHub Actions &bull; Deploy en Render &bull; Feature Toggles con ConfigCat
+    </footer>
+
+    <script>
+        // --- Calculator Logic ---
+        async function calcular(operacion) {
+            const a = document.getElementById('inputA').value;
+            const b = document.getElementById('inputB').value;
+
+            // Highlight active button
+            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active-op'));
+            const btnId = 'btn' + operacion.charAt(0).toUpperCase() + operacion.slice(1);
+            const activeBtn = document.getElementById(btnId);
+            if (activeBtn && !activeBtn.classList.contains('disabled')) {
+                activeBtn.classList.add('active-op');
+            }
+
+            try {
+                const response = await fetch(`/${operacion}?a=${a}&b=${b}`);
+                const data = await response.json();
+
+                const label = document.getElementById('resultLabel');
+                const value = document.getElementById('resultValue');
+
+                if (response.ok) {
+                    label.textContent = `${data.a} ${getSymbol(operacion)} ${data.b} =`;
+                    value.textContent = data.resultado;
+                } else {
+                    label.textContent = 'Error';
+                    value.textContent = data.error;
+                }
+            } catch (err) {
+                document.getElementById('resultLabel').textContent = 'Error';
+                document.getElementById('resultValue').textContent = err.message;
+            }
+        }
+
+        function getSymbol(op) {
+            const symbols = { suma: '+', resta: '−', multiplicacion: '×', division: '÷' };
+            return symbols[op] || '?';
+        }
+
+        // --- EJEMPLO 3 — Dark Mode Toggle (Ticket 2) ---
+        // Solo funciona si dark_mode_enabled está ON en ConfigCat
+        const toggleSwitch = document.getElementById('toggleSwitch');
+        if (toggleSwitch) {
+            toggleSwitch.addEventListener('click', () => {
+                const html = document.documentElement;
+                const isDark = html.getAttribute('data-theme') === 'dark';
+                html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+                toggleSwitch.classList.toggle('active', !isDark);
+            });
+        }
+    </script>
+
+</body>
+</html>
