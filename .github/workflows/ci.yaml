@@ -1,12 +1,12 @@
-name: Test and Build
+name: CI Pipeline - Test, Lint, Build & Deploy
 
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
   workflow_dispatch:
 
 jobs:
@@ -31,18 +31,16 @@ jobs:
 
       - name: Run ruff linter
         working-directory: src
-        run: |
-          pip install ruff==0.8.1
-          ruff check .
+        run: ruff check .
 
-      - name: Run tests
+      - name: Run tests with coverage
         working-directory: src
         run: |
-          pytest test.py
+          pytest test.py -v --tb=short --cov=main --cov-report=term-missing --cov-fail-under=80
 
   build_and_push:
     needs: test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -69,3 +67,12 @@ jobs:
           push: true
           tags: ghcr.io/${{ env.REPO }}:latest
 
+  deploy_to_render:
+    needs: build_and_push
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Render Deploy
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
