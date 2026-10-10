@@ -1,4 +1,5 @@
 import os
+import random
 import logging
 import configcatclient
 
@@ -7,7 +8,9 @@ from flask import Flask, jsonify, request, render_template
 app = Flask(__name__)
 
 # --- Configuración de Métricas (Taller 6) ---
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 # --- ConfigCat (Feature Toggle) ---
 CONFIGCAT_SDK_KEY = os.environ.get("CONFIGCAT_SDK_KEY", "")
@@ -128,7 +131,6 @@ def ruta_pagos_express():
         return jsonify({"error": "Pagos Express no está activo todavía"}), 404
 
     # 2. Simulación de la operación y TELEMETRÍA (Métricas requeridas)
-    import random
     if random.random() < 0.3:  # 30% de probabilidad de fallo simulado
         logging.error("MÉTRICA TALLER 6: [FALLO] Error procesando Pago Express.")
         return jsonify({"error": "Transacción rechazada"}), 500
