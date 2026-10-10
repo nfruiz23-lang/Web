@@ -1,9 +1,13 @@
 import os
+import logging
 import configcatclient
 
 from flask import Flask, jsonify, request, render_template
 
 app = Flask(__name__)
+
+# --- Configuración de Métricas (Taller 6) ---
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # --- ConfigCat (Feature Toggle) ---
 CONFIGCAT_SDK_KEY = os.environ.get("CONFIGCAT_SDK_KEY", "")
@@ -68,7 +72,7 @@ def api_index():
     return jsonify({
         "servicio": "Calculator API - Chanchito Feliz 🐷",
         "version": "1.0.0",
-        "endpoints": ["/suma", "/resta", "/multiplicacion", "/division", "/health", "/config"],
+        "endpoints": ["/suma", "/resta", "/multiplicacion", "/division", "/pagos_express", "/health", "/config"],
     })
 
 
@@ -114,6 +118,26 @@ def ruta_division():
 
 
 # =============================================
+#  Rutas — Ejemplo Taller 6 (Pagos Express)
+# =============================================
+@app.route("/pagos_express", methods=["GET", "POST"])
+def ruta_pagos_express():
+    """Ejemplo Práctico Taller 6: Pagos Express (protegido por toggle)."""
+    # 1. Validar el toggle
+    if not is_feature_enabled("pagos-express-v1", default=False):
+        return jsonify({"error": "Pagos Express no está activo todavía"}), 404
+
+    # 2. Simulación de la operación y TELEMETRÍA (Métricas requeridas)
+    import random
+    if random.random() < 0.3:  # 30% de probabilidad de fallo simulado
+        logging.error("MÉTRICA TALLER 6: [FALLO] Error procesando Pago Express.")
+        return jsonify({"error": "Transacción rechazada"}), 500
+    
+    logging.info("MÉTRICA TALLER 6: [ÉXITO] Pago Express procesado correctamente.")
+    return jsonify({"status": "ok", "mensaje": "Pago exitoso con un solo clic"})
+
+
+# =============================================
 #  Rutas — Feature Toggle Config
 # =============================================
 @app.route("/config")
@@ -121,9 +145,11 @@ def config():
     """Devuelve la configuración de UI basada en feature flags (para el frontend)."""
     dark_mode = is_feature_enabled("dark_mode_enabled", default=False)
     division = is_feature_enabled("division_enabled", default=False)
+    pagos_express = is_feature_enabled("pagos-express-v1", default=False)
     return jsonify({
         "dark_mode_enabled": dark_mode,
         "division_enabled": division,
+        "pagos_express_v1": pagos_express,
         "theme": "dark" if dark_mode else "light",
     })
 
