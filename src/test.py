@@ -135,3 +135,10 @@ class TestAPI:
         data = response.get_json()
         assert data["theme"] == "light"
         assert data["dark_mode_enabled"] is False
+
+    # --- Pagos Express Endpoint (toggle OFF por defecto) ---
+    def test_pagos_express_sin_toggle_retorna_404(self):
+        """Sin el flag activado, /pagos_express no está disponible."""
+        response = self.client.get("/pagos_express")
+        assert response.status_code == 404
+        assert "no está activo" in response.get_json()["error"].lower()
